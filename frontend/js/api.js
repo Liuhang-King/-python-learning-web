@@ -139,7 +139,10 @@
       return request('POST', '/api/progress/exercises/' + encodeURIComponent(id), {
         correct: correct !== false
       });
-    }
+    },
+
+    // 系统自检
+    selftest: function () { return request('GET', '/api/selftest'); }
   };
 
   global.Api = api;

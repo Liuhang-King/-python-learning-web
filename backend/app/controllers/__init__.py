@@ -8,8 +8,9 @@ from .exercises import exercises_bp
 from .health import health_bp
 from .lessons import lessons_bp
 from .progress import progress_bp
+from .selftest import selftest_bp
 
-_ALL_BLUEPRINTS = (health_bp, lessons_bp, exercises_bp, progress_bp)
+_ALL_BLUEPRINTS = (health_bp, lessons_bp, exercises_bp, progress_bp, selftest_bp)
 
 
 def register_controllers(app: Flask) -> None:

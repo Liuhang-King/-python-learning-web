@@ -515,6 +515,93 @@
     });
   }
 
+  /** 系统自检页：全量检查教程/练习/判分/数据库是否输出异常 */
+  function viewSelftest() {
+    var token = currentToken;
+    app.innerHTML = '<div class="page">' +
+      pageHeader('系统自检', '一键检查所有教程、练习题与判分逻辑是否存在异常') +
+      '<div class="state state-loading" id="selftestRunning">' +
+        '<div class="state-icon spinning">%</div>' +
+        '<h2>正在检查…</h2>' +
+        '<p>正在校验全部教程、练习题与判分逻辑，请稍候。</p>' +
+      '</div>' +
+      '<div id="selftestResult"></div>' +
+    '</div>';
+
+    Api.selftest().then(function (report) {
+      if (!isCurrent(token)) return;
+      var running = document.getElementById('selftestRunning');
+      var result = document.getElementById('selftestResult');
+      if (!running || !result) return;
+      running.style.display = 'none';
+
+      var s = report.summary || {};
+      var healthy = report.healthy === true;
+      var errors = Number(s.errors) || 0;
+      var warnings = Number(s.warnings) || 0;
+
+      var banner = healthy
+        ? '<div class="selftest-banner ok"><div class="selftest-banner-icon">✓</div>' +
+          '<div><h2>全部正常，未发现输出异常</h2>' +
+          '<p>共检查 ' + (s.checks || 0) + ' 项，' + (s.lessons || 0) + ' 篇教程、' +
+          (s.exercises || 0) + ' 道练习题均通过。</p></div></div>'
+        : '<div class="selftest-banner bad"><div class="selftest-banner-icon">!</div>' +
+          '<div><h2>发现 ' + errors + ' 个异常' + (warnings ? '、' + warnings + ' 个提示' : '') + '</h2>' +
+          '<p>请查看下方问题清单，定位并修复异常项。</p></div></div>';
+
+      var checkCards = (report.checks || []).map(function (c) {
+        var ok = c.ok === true;
+        return '<div class="selftest-check ' + (ok ? 'pass' : 'fail') + '">' +
+          '<span class="selftest-check-icon">' + (ok ? '✓' : '✗') + '</span>' +
+          '<span class="selftest-check-name">' + escapeHtml(c.name) + '</span>' +
+          '<span class="selftest-check-count">' +
+            (c.passed != null ? c.passed + ' / ' + c.total : (ok ? '通过' : '失败')) +
+          '</span>' +
+        '</div>';
+      }).join('');
+
+      var issueHtml = '';
+      var issues = report.issues || [];
+      if (issues.length) {
+        issueHtml = '<div class="selftest-issues"><h3>问题清单</h3>' +
+          issues.map(function (it) {
+            return '<div class="selftest-issue ' + escapeHtml(it.level) + '">' +
+              '<span class="selftest-issue-tag">' +
+                (it.level === 'error' ? '异常' : '提示') + '</span>' +
+              '<span class="selftest-issue-where">' +
+                escapeHtml(it.category) + ' · ' + escapeHtml(it.name) + '</span>' +
+              '<span class="selftest-issue-detail">' + escapeHtml(it.detail) + '</span>' +
+            '</div>';
+          }).join('') + '</div>';
+      }
+
+      result.innerHTML = banner +
+        '<div class="selftest-section-title">检查项</div>' +
+        '<div class="selftest-checks">' + checkCards + '</div>' +
+        issueHtml +
+        '<div class="selftest-actions">' +
+          '<button class="btn btn-primary" id="selftestRerun" type="button">重新检查</button>' +
+        '</div>';
+
+      var rerun = document.getElementById('selftestRerun');
+      if (rerun) rerun.addEventListener('click', viewSelftest);
+    }).catch(function (err) {
+      if (!isCurrent(token)) return;
+      var running = document.getElementById('selftestRunning');
+      var result = document.getElementById('selftestResult');
+      if (running) running.style.display = 'none';
+      if (result) {
+        result.innerHTML = '<div class="state state-error">' +
+          '<div class="state-icon">!</div><h2>自检失败</h2>' +
+          '<p>' + escapeHtml(Api.friendlyMessage(err)) + '</p>' +
+          '<button class="btn btn-primary" id="selftestRetry" type="button">重试</button>' +
+          '</div>';
+        var retry = document.getElementById('selftestRetry');
+        if (retry) retry.addEventListener('click', viewSelftest);
+      }
+    });
+  }
+
   /* ==================== 路由 ==================== */
 
   function parseRoute() {
@@ -553,6 +640,9 @@
         break;
       case 'progress':
         viewProgress();
+        break;
+      case 'selftest':
+        viewSelftest();
         break;
       default:
         app.innerHTML = '<div class="page"><div class="state state-error">' +

@@ -440,6 +440,72 @@ button { font-family: inherit; cursor: pointer; }
   background: var(--surface);
 }
 
+/* ---------- 系统自检页 ---------- */
+.state-loading .spinning {
+  display: inline-flex; align-items: center; justify-content: center;
+  animation: selftest-spin 1.1s linear infinite;
+}
+@keyframes selftest-spin { to { transform: rotate(360deg); } }
+
+.selftest-banner {
+  display: flex; align-items: center; gap: 18px;
+  padding: 22px 24px; border-radius: var(--radius); margin-bottom: 24px;
+  box-shadow: var(--shadow);
+}
+.selftest-banner.ok { background: linear-gradient(135deg, #eafaf3, #d5f5e8); border: 1px solid #b7e9d3; }
+.selftest-banner.bad { background: linear-gradient(135deg, #fff0f0, #ffe0e0); border: 1px solid #ffc7c7; }
+.selftest-banner-icon {
+  flex: 0 0 auto; width: 52px; height: 52px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 26px; font-weight: 700; color: #fff;
+}
+.selftest-banner.ok .selftest-banner-icon { background: var(--success); }
+.selftest-banner.bad .selftest-banner-icon { background: var(--danger); }
+.selftest-banner h2 { margin: 0 0 6px; font-size: 20px; color: var(--text); }
+.selftest-banner p { margin: 0; font-size: 14px; color: var(--text-muted); }
+
+.selftest-section-title {
+  font-size: 15px; font-weight: 700; color: var(--text-muted);
+  margin: 0 0 12px; letter-spacing: .5px;
+}
+.selftest-checks {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px; margin-bottom: 26px;
+}
+.selftest-check {
+  display: flex; align-items: center; gap: 10px;
+  padding: 14px 16px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 12px;
+  box-shadow: var(--shadow);
+}
+.selftest-check-icon {
+  flex: 0 0 auto; width: 24px; height: 24px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; font-size: 13px; font-weight: 700;
+}
+.selftest-check.pass .selftest-check-icon { background: var(--success); }
+.selftest-check.fail .selftest-check-icon { background: var(--danger); }
+.selftest-check-name { flex: 1; font-size: 14px; color: var(--text); }
+.selftest-check-count { font-size: 13px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+.selftest-issues { margin-bottom: 26px; }
+.selftest-issues h3 { font-size: 16px; margin: 0 0 12px; color: var(--text); }
+.selftest-issue {
+  display: flex; align-items: flex-start; gap: 10px; flex-wrap: wrap;
+  padding: 12px 14px; margin-bottom: 8px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--border);
+}
+.selftest-issue-tag {
+  flex: 0 0 auto; font-size: 12px; font-weight: 700; padding: 2px 8px;
+  border-radius: 6px; color: #fff;
+}
+.selftest-issue.error .selftest-issue-tag { background: var(--danger); }
+.selftest-issue.warning .selftest-issue-tag { background: #e0a020; }
+.selftest-issue-where { flex: 0 0 auto; font-size: 14px; color: var(--text); font-weight: 600; }
+.selftest-issue-detail { flex: 1 1 100%; font-size: 13px; color: var(--text-muted); }
+
+.selftest-actions { display: flex; gap: 12px; }
+
 /* ---------- 响应式 ---------- */
 @media (max-width: 720px) {
   .header-inner { height: auto; flex-direction: column; gap: 10px; padding: 12px 16px; }
