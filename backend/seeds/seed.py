@@ -1,4 +1,4 @@
-"""种子数据脚本：写入 12 篇教程与 24 道练习题。
+"""种子数据脚本：写入 49 篇教程与 98 道练习题（基础 12 + 扩展 37）。
 
 用法（在项目根目录执行）：
     python backend/seeds/seed.py
@@ -8,6 +8,7 @@
     - 幂等：按 slug（教程）与 (lesson_id, title)（练习）去重，已有数据则跳过。
 """
 
+import importlib.util
 import os
 import sqlite3
 import sys
@@ -15,6 +16,9 @@ from pathlib import Path
 
 # seeds -> backend -> 项目根
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
+
+# 目录扩展内容分散在 extra_batch1..5.py，按批次合并（每个模块导出 LESSONS / EXERCISES）
+THEME_BATCHES = 5
 
 
 def get_database_path() -> Path:
@@ -843,6 +847,28 @@ EXERCISES = [
         "order_index": 24,
     },
 ]
+
+
+# ---------------------------------------------------------------------------
+# 合并扩展目录：把 extra_batch1..5 的教程与练习并入主列表
+# ---------------------------------------------------------------------------
+def _load_theme_batches() -> None:
+    here = Path(__file__).resolve().parent
+    for i in range(1, THEME_BATCHES + 1):
+        module_path = here / f"extra_batch{i}.py"
+        if not module_path.exists():
+            print(f"警告：扩展批次文件缺失：{module_path.name}，已跳过。")
+            continue
+        spec = importlib.util.spec_from_file_location(f"extra_batch{i}", module_path)
+        if spec is None or spec.loader is None:
+            continue
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        LESSONS.extend(getattr(module, "LESSONS", []))
+        EXERCISES.extend(getattr(module, "EXERCISES", []))
+
+
+_load_theme_batches()
 
 
 def table_exists(conn: sqlite3.Connection, table: str) -> bool:
